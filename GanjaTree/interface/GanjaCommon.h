@@ -1,8 +1,6 @@
 #ifndef GanjaCommon_h
 #define GanjaCommon_h
 
-#include "TPaveText.h"
-
 
 
 class GanjaCommon {
@@ -13,11 +11,7 @@ class GanjaCommon {
   ~GanjaCommon();
 
   static void setStyle();
-  static void setColors( int baseColor, int nColors, Double_t* levels, float zMax = 0.2 );
-
-  static TPaveText* get_labelTop();
-  static TPaveText* get_labelCMS();
-
+  static void setColors( int baseColor, unsigned nColors, double* levels, float zMax = 0.2 );
 
   static float binToDelta( int bin );
   static void getEtaPhiBins( int i, int nPix1D, int& etaBin, int& phiBin );

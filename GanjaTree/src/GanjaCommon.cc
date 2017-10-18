@@ -38,37 +38,6 @@ float GanjaCommon::pixelSize() {
 }
 
 
-TPaveText* GanjaCommon::get_labelTop() {
-
-  TPaveText* label_top = new TPaveText(0.4,0.959,0.975,0.963, "brNDC");
-  label_top->SetBorderSize(0);
-  label_top->SetFillColor(0);
-  label_top->SetTextSize(0.038);
-  label_top->SetTextAlign(31);
-  label_top->SetTextFont(42);
-  label_top->AddText("#sqrt{s} = 13 TeV");
-
-  return label_top;
-
-}
-
-
-
-TPaveText* GanjaCommon::get_labelCMS() {
-
-  TPaveText* label_cms = new TPaveText(0.143,0.96,0.27,0.965, "brNDC");
-  label_cms->SetBorderSize(0);
-  label_cms->SetFillColor(0);
-  label_cms->SetTextSize(0.042);
-  label_cms->SetTextAlign(11);
-  label_cms->SetTextFont(42);
-  label_cms->AddText( "CMS Simulation" );
-
-  return label_cms;
-
-}
-
-
 
 void GanjaCommon::setStyle() {
 
@@ -139,10 +108,10 @@ void GanjaCommon::setStyle() {
   // for histograms:
   style->SetHistLineColor(1);
   // for the palette
-  Double_t stops[5] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
-  Double_t red  [5] = { 0.00, 0.00, 0.87, 1.00, 0.51 };
-  Double_t green[5] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
-  Double_t blue [5] = { 0.51, 1.00, 0.12, 0.00, 0.00 };
+  double stops[5] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
+  double red  [5] = { 0.00, 0.00, 0.87, 1.00, 0.51 };
+  double green[5] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
+  double blue [5] = { 0.51, 1.00, 0.12, 0.00, 0.00 };
   TColor::CreateGradientColorTable(5, stops, red, green, blue, 100);
   style->SetNumberContours(100);
 
@@ -157,7 +126,7 @@ void GanjaCommon::setStyle() {
 }
 
 
-void GanjaCommon::setColors( int baseColor, int nColors, Double_t* levels, float zMax ) {
+void GanjaCommon::setColors( int baseColor, unsigned nColors, double* levels, float zMax ) {
 
   int colors[nColors];
   colors[0] = kWhite;
@@ -172,7 +141,7 @@ void GanjaCommon::setColors( int baseColor, int nColors, Double_t* levels, float
 
     levels[0] = 0.;
     levels[1] = 1e-10;
-    Double_t levBinSize = zMax/((Double_t)nColors-1.);
+    double levBinSize = zMax/((double)nColors-1.);
     for( unsigned iLev = 2; iLev<(nColors+1); ++iLev )
       levels[iLev] = levels[iLev-1]+levBinSize;
 
