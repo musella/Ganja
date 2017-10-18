@@ -15,6 +15,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 
 
 class TTree;
@@ -49,9 +50,7 @@ class GanjaTree : public edm::EDAnalyzer {
       // ----------member data ---------------------------
 
       //const JetCorrector *JEC;
-      //TFileService fs;
-      //edm::Service<TFileService> fs;
-      TFile* file;
+      edm::Service<TFileService> fs;
       TTree* tree;
       float rho, pt, eta, phi, mass, ptGen, etaGen, phiGen, massGen, btag;
       int event, run, lumi, nVert, nPU, partonId, jetIdLevel;
