@@ -7,6 +7,12 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
+process.TFileService = cms.Service("TFileService",
+      fileName = cms.string("ganjaTree.root"),
+      closeFileFast = cms.untracked.bool(True)
+)
+
+
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
@@ -14,8 +20,8 @@ process.source = cms.Source("PoolSource",
     )
 )
 
-process.demo = cms.EDAnalyzer('GanjaTree'
+process.ganja = cms.EDAnalyzer('GanjaTree'
 )
 
 
-process.p = cms.Path(process.demo)
+process.p = cms.Path(process.ganja)
