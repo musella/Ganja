@@ -82,8 +82,6 @@ void GanjaCommon::setStyle() {
   style->SetCanvasBorderMode(0);
   style->SetPadBorderMode(0);
   style->SetFrameBorderMode(0);
-  style->SetPadBottomMargin(0.12);
-  style->SetPadLeftMargin(0.12);
   style->cd();
   // For the canvas:
   style->SetCanvasBorderMode(0);
@@ -108,11 +106,11 @@ void GanjaCommon::setStyle() {
   style->SetFrameLineColor(1);
   style->SetFrameLineStyle(1);
   style->SetFrameLineWidth(1);
-  // Margins:
-  style->SetPadTopMargin(0.05);
-  style->SetPadBottomMargin(0.15);//0.13);
-  style->SetPadLeftMargin(0.15);//0.16);
-  style->SetPadRightMargin(0.05);//0.02);
+  //// Margins:
+  //style->SetPadTopMargin(0.05);
+  //style->SetPadBottomMargin(0.15);//0.13);
+  //style->SetPadLeftMargin(0.15);//0.16);
+  //style->SetPadRightMargin(0.05);//0.02);
   // For the Global title:
   style->SetOptTitle(0);
   style->SetTitleFont(42);
@@ -148,8 +146,8 @@ void GanjaCommon::setStyle() {
   TColor::CreateGradientColorTable(5, stops, red, green, blue, 100);
   style->SetNumberContours(100);
 
-  gStyle->SetPadTopMargin(0.1);
-  gStyle->SetPadBottomMargin(0.15);//0.13);
+  gStyle->SetPadTopMargin(0.15);
+  gStyle->SetPadBottomMargin(0.1);//0.13);
   gStyle->SetPadLeftMargin(0.15);//0.16);
   gStyle->SetPadRightMargin(0.15);//0.02);
 
