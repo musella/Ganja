@@ -18,41 +18,17 @@
 //
 
 
-// system include files
-#include <memory>
 
-// user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "../interface/GanjaNtuplizer.h"
 
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/Framework/interface/ESHandle.h"
 
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-//
-// class declaration
-//
+#include "DataFormats/JetReco/interface/PFJet.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
 
-class GanjaNtuplizer : public edm::EDAnalyzer {
-   public:
-      explicit GanjaNtuplizer(const edm::ParameterSet&);
-      ~GanjaNtuplizer();
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
+#include "DataFormats/JetReco/interface/PFJetCollection.h"
 
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
-
-   private:
-      virtual void beginJob() ;
-      virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-
-      virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-      virtual void endRun(edm::Run const&, edm::EventSetup const&);
-      virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-      virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
-      // ----------member data ---------------------------
-};
 
 //
 // constants, enums and typedefs
@@ -90,19 +66,35 @@ GanjaNtuplizer::~GanjaNtuplizer()
 void
 GanjaNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+
    using namespace edm;
+   using namespace reco;
+
+   Handle<PFJetCollection> pfJets_h;
+   iEvent.getByLabel( "ak5PFJets", pfJets_h);
+   const PFJetCollection* pfJets = pfJets_h.product();
+
+   Handle<GenJetCollection> genJets_h;
+   iEvent.getByLabel( "ak5GenJets", genJets_h);
+   const GenJetCollection* genJets = genJets_h.product(); 
 
 
+   std::cout << "gen: " << std::endl;
+   for ( GenJetCollection::const_iterator it = genJets->begin(); it != genJets->end(); it++ ) {
 
-#ifdef THIS_IS_AN_EVENT_EXAMPLE
-   Handle<ExampleData> pIn;
-   iEvent.getByLabel("example",pIn);
-#endif
-   
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-   ESHandle<SetupData> pSetup;
-   iSetup.get<SetupRecord>().get(pSetup);
-#endif
+     std::cout << "pt: " << it->pt() << " eta: " << it->eta() << std::endl;
+
+   }
+
+
+   std::cout << "reco: " << std::endl;
+   for ( PFJetCollection::const_iterator it = pfJets->begin(); it != pfJets->end(); it++ ) {
+
+     std::cout << "pt: " << it->pt() << " eta: " << it->eta() << std::endl;
+
+   }
+
+
 }
 
 
