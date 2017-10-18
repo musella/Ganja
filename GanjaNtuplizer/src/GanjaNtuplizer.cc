@@ -29,6 +29,8 @@
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
 
+#include "TLorentzVector.h"
+
 
 //
 // constants, enums and typedefs
@@ -79,20 +81,63 @@ GanjaNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    const GenJetCollection* genJets = genJets_h.product(); 
 
 
-   std::cout << "gen: " << std::endl;
-   for ( GenJetCollection::const_iterator it = genJets->begin(); it != genJets->end(); it++ ) {
+   int maxJetsAnalyzed = 2;
+   int nJetsAnalyzed   = 0;
 
-     std::cout << "pt: " << it->pt() << " eta: " << it->eta() << std::endl;
+   for ( GenJetCollection::const_iterator it = genJets->begin(); it != genJets->end() && nJetsAnalyzed<maxJetsAnalyzed; it++ ) {
+
+     TLorentzVector p4_genJet;
+     p4_genJet.SetPtEtaPhiM( it->pt(), it->eta(), it->phi(), it->mass() );
+
+
+     // match to reco:
+     float deltaRmax = 0.3;
+     float deltaRbest = 999.;
+     PFJet* pfJet=0;
+     //TLorentzVector pfJet;
+
+     for ( PFJetCollection::const_iterator it2 = pfJets->begin(); it2 != pfJets->end(); it2++ ) {
+
+       TLorentzVector p4_pfJet;
+       p4_pfJet.SetPtEtaPhiM( it2->pt(), it2->eta(), it2->phi(), it2->mass() );
+
+       //double deltaPhi = it->phi() - it2->phi();
+       //double deltaEta = it->eta() - it2->eta();
+       //if(deltaPhi >  Geom::pi()) deltaPhi -= 2.*Geom::pi();
+       //if(deltaPhi < -Geom::pi()) deltaPhi += 2.*Geom::pi();
+       //double deltaR = std::sqrt(deltaEta*deltaEta+deltaPhi*deltaPhi);
+
+
+       float deltaR = p4_pfJet.DeltaR(p4_genJet);
+
+       if( deltaR<deltaRbest ) {
+
+         deltaRbest = deltaR;
+         pfJet = (PFJet*)(&(*it2));
+         //pfJet.SetPtEtaPhiM( it2->pt(), it2->eta(), it2->phi(), it2->mass() );
+
+       }
+
+     }
+
+     if( deltaRbest > deltaRmax ) continue; // no match, no party
+ 
+
+     if( pfJet!=0 ) {
+       std::cout << "pt: " << pfJet->pt();
+       std::cout << "eta: " << pfJet->eta();
+     }
+     //std::vector<const PFCandidate*> pfCandidates = pfJet->getPFConstituents(); 
+
+
+     
+
+
+     nJetsAnalyzed++;
 
    }
 
 
-   std::cout << "reco: " << std::endl;
-   for ( PFJetCollection::const_iterator it = pfJets->begin(); it != pfJets->end(); it++ ) {
-
-     std::cout << "pt: " << it->pt() << " eta: " << it->eta() << std::endl;
-
-   }
 
 
 }
