@@ -43,7 +43,7 @@ class GanjaTree : public edm::EDAnalyzer {
       virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
       virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
-      void fillImage( float pt, float dEta, float dPhi, int nPix_1D, float pixelSize, float* image );
+      void fillImage( float ptRatio, float dEta, float dPhi, int nPix_1D, float pixelSize, float* image );
       int getPileUp( edm::Handle<std::vector<PileupSummaryInfo>>& pupInfo );
 
 
