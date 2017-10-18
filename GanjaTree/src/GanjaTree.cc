@@ -97,8 +97,12 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel("offlinePrimaryVerticesWithBS", vertexCollection);
 
    Handle<std::vector<PileupSummaryInfo>> pupInfo;
-   iEvent.getByLabel("slimmedAddPileupInfo", pupInfo);
+   iEvent.getByLabel("addPileupInfo", pupInfo);
 
+
+   event =   (int) iEvent.id().event();
+   run   =   (int) iEvent.id().run();
+   lumi  =   (int) iEvent.id().luminosityBlock();
 
 
    nVert = vertexCollection->size();
@@ -122,14 +126,16 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      for ( PFJetCollection::const_iterator it2 = pfJets->begin(); it2 != pfJets->end(); it2++ ) {
 
-       p4_pfJet.SetPtEtaPhiM( it2->pt(), it2->eta(), it2->phi(), it2->mass() );
+       TLorentzVector p4_thisJet;
+       p4_thisJet.SetPtEtaPhiM( it2->pt(), it2->eta(), it2->phi(), it2->mass() );
 
-       float deltaR = p4_pfJet.DeltaR(p4_genJet);
+       float deltaR = p4_thisJet.DeltaR(p4_genJet);
 
        if( deltaR<deltaRbest ) {
 
          deltaRbest = deltaR;
          pfJet = (PFJet*)(&(*it2));
+         p4_pfJet.SetPtEtaPhiM( it2->pt(), it2->eta(), it2->phi(), it2->mass() );
 
        }
 
@@ -183,7 +189,7 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 
-void GanjaTree::fillImage( float pt, float dEta, float dPhi, int nPix_1D, float pixelSize, float* image ) {
+void GanjaTree::fillImage( float ptRatio, float dEta, float dPhi, int nPix_1D, float pixelSize, float* image ) {
 
   dEta /= pixelSize;
   dPhi /= pixelSize;
@@ -202,7 +208,7 @@ void GanjaTree::fillImage( float pt, float dEta, float dPhi, int nPix_1D, float 
     exit(11);
   }
 
-  image[ etaBin + phiBin ] += pt;
+  image[ etaBin + phiBin ] += ptRatio;
 
 }
 
@@ -233,7 +239,7 @@ GanjaTree::beginJob()
   tree->Branch("event" , &event, "event/I");
   tree->Branch("run"   , &run  , "run/I");
   tree->Branch("lumi"  , &lumi , "lumi /I");
-  tree->Branch("rho"   , &rho  , "rho/I");
+  tree->Branch("rho"   , &rho  , "rho/F");
   tree->Branch("nVert" , &nVert, "nVert/I");
   tree->Branch("nPU"   , &nPU  , "nPU/I");
   tree->Branch("pt"    , &pt   , "pt/F");
