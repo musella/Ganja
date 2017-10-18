@@ -18,6 +18,8 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 
+#define nIMGMAX 99999
+
 class TTree;
 class PileupSummaryInfo;
 
@@ -61,8 +63,8 @@ class GanjaTree : public edm::EDAnalyzer {
       unsigned int nPix_1D= 2* int(drMax/pixelSize);
       unsigned int nPix = nPix_1D*nPix_1D;
 
-      float jetImageReco[99999];
-      float jetImageGen [99999];
+      float jetImageReco[nIMGMAX];
+      float jetImageGen [nIMGMAX];
 
 };
 

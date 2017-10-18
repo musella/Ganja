@@ -108,17 +108,16 @@ void drawImages( TTree* tree, int entryStart, int entryStop, int baseColor ) {
   GanjaCommon::setColors(baseColor, nColors, levels, zMax);
 
 
-  TH2D* h2_jetImageReco = new TH2D( "jetImageReco", "", nPix_1D, -drMax, drMax, nPix_1D, -drMax, drMax );
-  h2_jetImageReco->SetContour((sizeof(levels)/sizeof(Double_t)), levels);
-  TH2D* h2_jetImageGen = new TH2D( "jetImageGen", "", nPix_1D, -drMax, drMax, nPix_1D, -drMax, drMax );
-  h2_jetImageGen->SetContour((sizeof(levels)/sizeof(Double_t)), levels);
-
-
 
 
   for( unsigned iEntry=entryStart; iEntry<=entryStop; iEntry++ ) {
 
     tree->GetEntry(iEntry);
+
+    TH2D* h2_jetImageReco = new TH2D( Form("jetImageReco_%d", iEntry), "", nPix_1D, -drMax, drMax, nPix_1D, -drMax, drMax );
+    h2_jetImageReco->SetContour((sizeof(levels)/sizeof(Double_t)), levels);
+    TH2D* h2_jetImageGen = new TH2D( Form("jetImageGen_%d", iEntry), "", nPix_1D, -drMax, drMax, nPix_1D, -drMax, drMax );
+    h2_jetImageGen->SetContour((sizeof(levels)/sizeof(Double_t)), levels);
 
 
     for( unsigned i=0; i<nPix; ++i ) {
@@ -220,6 +219,8 @@ void drawImages( TTree* tree, int entryStart, int entryStop, int baseColor ) {
     delete h2_axes;
     delete labelReco;
     delete labelGen;
+    delete h2_jetImageGen;
+    delete h2_jetImageReco;
 
 
   } // for entries

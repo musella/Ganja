@@ -114,6 +114,13 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    for ( GenJetCollection::const_iterator it = genJets->begin(); it != genJets->end() && nJetsAnalyzed<maxJetsAnalyzed; it++ ) {
 
+
+     // initialize jet image:
+     for( unsigned i=0; i<nIMGMAX; ++i ) {
+       jetImageReco[i] = 0.;
+       jetImageGen [i] = 0.;
+     }
+
      TLorentzVector p4_genJet;
      p4_genJet.SetPtEtaPhiM( it->pt(), it->eta(), it->phi(), it->mass() );
 
