@@ -33,6 +33,8 @@
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
@@ -169,14 +171,14 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      } // if PFJet ! = 0
 
 
-
+     tree->Fill();
      nJetsAnalyzed++;
 
 
    } // for genJets
 
 
-
+  
 
 }
 
@@ -222,12 +224,12 @@ GanjaTree::beginJob()
 {
 
 
-  file = TFile::Open("ganjaNtuple.root", "recreate" );
-  file->cd();
+  //file = TFile::Open("ganjaTree.root", "recreate" );
+  //file->cd();
 
-  tree = new TTree( "ganjaTree", "" );
+  //tree = new TTree( "ganjaTree", "" );
 
-  //tree = fs->make<TTree>("qgMiniTuple","qgMiniTuple");
+  tree = fs->make<TTree>("ganjaTree","ganjaTree");
   tree->Branch("event" , &event, "event/I");
   tree->Branch("run"   , &run  , "run/I");
   tree->Branch("lumi"  , &lumi , "lumi /I");
@@ -259,6 +261,11 @@ GanjaTree::beginJob()
 void 
 GanjaTree::endJob() 
 {
+
+  //file->cd();
+  //tree->Write();
+  //file->Close();
+
 }
 
 // ------------ method called when starting to processes a run  ------------
