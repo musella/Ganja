@@ -5,6 +5,8 @@
 <use name="DataFormats/JetReco"/>
 <use name="DataFormats/VertexReco"/>
 <use name="SimDataFormats/PileupSummaryInfo"/>
+<use name="CommonTools/UtilAlgos"/>
+<use name="FWCore/ServiceRegistry"/>
 <flags EDM_PLUGIN="1"/>
 <export>
    <lib name="GanjaTree"/>
