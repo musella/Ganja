@@ -202,6 +202,7 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      tree->Fill();
      nJetsAnalyzed++;
+     event = -event; //second jet has negative event number
 
 
    } // for genJets
