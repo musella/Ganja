@@ -71,6 +71,12 @@ int main( int argc, char* argv[] ) {
 
 void drawImages( TTree* tree, int entryStart, int entryStop, int baseColor ) {
 
+  int event;
+  tree->SetBranchAddress( "event", &event );
+  int run;
+  tree->SetBranchAddress( "run", &run );
+  float rho;
+  tree->SetBranchAddress( "rho", &rho );
   int nPix;
   tree->SetBranchAddress( "nPix", &nPix );
   float drMax;
@@ -156,7 +162,7 @@ void drawImages( TTree* tree, int entryStart, int entryStop, int baseColor ) {
     TH2D* h2_axes = new TH2D("axes", "", 10, -0.3, 0.3, 10, -0.3, 0.3);
     h2_axes->Draw("");
 
-    TPaveText* labelGen = new TPaveText(0.18, 0.72, 0.52, 0.87, "brNDC");
+    TPaveText* labelGen = new TPaveText(0.18, 0.67, 0.52, 0.82, "brNDC");
     labelGen->SetTextSize(0.032);
     labelGen->SetFillColor(0);
     labelGen->SetTextAlign(11);
@@ -170,13 +176,19 @@ void drawImages( TTree* tree, int entryStart, int entryStop, int baseColor ) {
     h2_jetImageGen->GetZaxis()->SetNdivisions(804,false);
     h2_jetImageGen->Draw("col z same");
 
+    TPaveText* labelGanja = new TPaveText( 0.1, 0.9, 0.9, 0.95, "brNDC" );
+    labelGanja->SetTextSize(0.04);
+    labelGanja->SetFillColor(0);
+    labelGanja->AddText( "CMS Open Data Simulation, #sqrt{s} = 7 TeV, Ganja" );
+    labelGanja->Draw("same");
+
 
     c1->cd(2);
 
     //TH2D* h2_axes = new TH2D("axes", "", 10, -0.3, 0.3, 10, -0.3, 0.3);
     h2_axes->Draw("");
 
-    TPaveText* labelReco = new TPaveText(0.18, 0.72, 0.52, 0.87, "brNDC");
+    TPaveText* labelReco = new TPaveText(0.18, 0.67, 0.52, 0.82, "brNDC");
     labelReco->SetTextSize(0.032);
     labelReco->SetFillColor(0);
     labelReco->SetTextAlign(11);
@@ -190,7 +202,15 @@ void drawImages( TTree* tree, int entryStart, int entryStop, int baseColor ) {
     h2_jetImageReco->GetZaxis()->SetNdivisions(804,false);
     h2_jetImageReco->Draw("col z same");
 
+    TPaveText* labelEvent = new TPaveText( 0.1, 0.9, 0.9, 0.95, "brNDC" );
+    labelEvent->SetTextSize(0.032);
+    labelEvent->SetFillColor(0);
+    labelEvent->AddText( Form("Run=%d, Event=%d, #rho=%.1f GeV", run, event, rho) );
+    labelEvent->Draw("same");
+
+
     gPad->RedrawAxis();
+
 
     c1->SaveAs( Form("jetImages/jetImage_%d.pdf", iEntry) );
     c1->SaveAs( Form("jetImages/jetImage_%d.eps", iEntry) );
