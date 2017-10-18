@@ -14,7 +14,7 @@ of the tree corresponds to a given *jet*, not a given event.
 For each jet, a jet image is saved (one for reco and one for gen). All candidates are used, and a pixel size of 0.005 in the eta-phi
 plane is used. It is a square image, and reaches out to deltaEta and deltaPhi of +/-0.3.
 
-To have a look at some jet images, do to the `analysis` directory and compile drawJetImages.cpp with `make drawJetImages.cpp`.
+To have a look at some jet images, go to the `analysis` directory and compile drawJetImages.cpp with `make drawJetImages.cpp`.
 You can then run it (provided that a rootfile with a valid tree has been already created in the `test` directory) with:
 
 `./drawJetImages [(int)startEntry] [(int)stopEntry]`
