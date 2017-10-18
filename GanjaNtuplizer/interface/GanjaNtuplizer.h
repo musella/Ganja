@@ -14,6 +14,10 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
+
+class TTree;
 
 
 class GanjaNtuplizer : public edm::EDAnalyzer {
@@ -34,7 +38,15 @@ class GanjaNtuplizer : public edm::EDAnalyzer {
       virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
       virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
+
       // ----------member data ---------------------------
+
+      //const JetCorrector *JEC;
+      TFileService fs;
+      //edm::Service<TFileService> fs;
+      TTree *tree;
+      float rho, pt, eta, phi, mass, ptGen, etaGen, phiGen, massGen, bTag;
+      int event, run, lumi, partonId;
 
       float drMax = 0.3;
       float pixelSize = 0.005;
