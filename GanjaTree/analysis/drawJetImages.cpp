@@ -58,7 +58,7 @@ int main( int argc, char* argv[] ) {
 
   system( "mkdir -p jetImages/" );
 
-  TFile* file = TFile::Open("../ganjaTree.root", "read");
+  TFile* file = TFile::Open("../test/ganjaTree.root", "read");
   TTree* tree = (TTree*)file->Get("ganja/ganjaTree");
 
   std::cout << "-> Starting draw images..." << std::endl;
