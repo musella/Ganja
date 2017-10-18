@@ -25,9 +25,13 @@
 
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
+
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -83,6 +87,21 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel( "ak5GenJets", genJets_h);
    const GenJetCollection* genJets = genJets_h.product(); 
 
+   Handle<double> rhoHandle;
+   iEvent.getByLabel("fixedGridRhoFastjetAll", rhoHandle);
+   rho = (float) *rhoHandle;
+
+   Handle< std::vector<Vertex> > vertexCollection;
+   iEvent.getByLabel("offlinePrimaryVerticesWithBS", vertexCollection);
+
+   Handle<std::vector<PileupSummaryInfo>> pupInfo;
+   iEvent.getByLabel("slimmedAddPileupInfo", pupInfo);
+
+
+
+   nVert = vertexCollection->size();
+   nPU   = getPileUp(pupInfo);
+
 
    int maxJetsAnalyzed = 2;
    int nJetsAnalyzed   = 0;
@@ -97,13 +116,11 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      float deltaRmax = 0.3;
      float deltaRbest = 999.;
      PFJet* pfJet=0;
-     //TLorentzVector pfJet;
+     TLorentzVector p4_pfJet;
 
      for ( PFJetCollection::const_iterator it2 = pfJets->begin(); it2 != pfJets->end(); it2++ ) {
 
-       TLorentzVector p4_pfJet;
        p4_pfJet.SetPtEtaPhiM( it2->pt(), it2->eta(), it2->phi(), it2->mass() );
-
 
        float deltaR = p4_pfJet.DeltaR(p4_genJet);
 
@@ -117,6 +134,16 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
 
      if( deltaRbest > deltaRmax ) continue; // no match, no party
+
+     pt   = p4_pfJet.Pt();
+     eta  = p4_pfJet.Eta();
+     phi  = p4_pfJet.Phi();
+     mass = p4_pfJet.M();
+ 
+     ptGen   = p4_genJet.Pt();
+     etaGen  = p4_genJet.Eta();
+     phiGen  = p4_genJet.Phi();
+     massGen = p4_genJet.M();
  
      if( pfJet!=0 ) {
 
@@ -130,11 +157,12 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
          p4_cand.SetPtEtaPhiM( (*iCand)->pt(), (*iCand)->eta(), (*iCand)->phi(), (*iCand)->mass() );
 
          float dRcandJet = p4_cand.DeltaR(p4_pfJet);
+         if( dRcandJet > drMax ) continue;
 
          float dEtaCandJet = p4_cand.Eta()-p4_pfJet.Eta();
          float dPhiCandJet = p4_cand.DeltaPhi(p4_pfJet);
 
-         fillImage( p4_cand.pt()/pfJet.pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageReco );
+         this->fillImage( p4_cand.Pt()/p4_pfJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageReco );
 
        } // for cands
 
@@ -177,6 +205,16 @@ void GanjaTree::fillImage( float pt, float dEta, float dPhi, int nPix_1D, float 
 }
 
 
+int GanjaTree::getPileUp( edm::Handle<std::vector<PileupSummaryInfo>>& pupInfo ) {
+
+  if(!pupInfo.isValid()) return -1;
+  auto PVI = pupInfo->begin();
+  while(PVI->getBunchCrossing() != 0 && PVI != pupInfo->end()) ++PVI;
+  if(PVI != pupInfo->end()) return PVI->getPU_NumInteractions();
+  else return -1;
+
+} 
+
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
@@ -193,7 +231,9 @@ GanjaTree::beginJob()
   tree->Branch("event" , &event, "event/I");
   tree->Branch("run"   , &run  , "run/I");
   tree->Branch("lumi"  , &lumi , "lumi /I");
-  tree->Branch("rho"   , &rho  , "run/I");
+  tree->Branch("rho"   , &rho  , "rho/I");
+  tree->Branch("nVert" , &nVert, "nVert/I");
+  tree->Branch("nPU"   , &nPU  , "nPU/I");
   tree->Branch("pt"    , &pt   , "pt/F");
   tree->Branch("eta"   , &eta  , "eta/F");
   tree->Branch("phi"   , &phi  , "phi/F");
@@ -205,20 +245,6 @@ GanjaTree::beginJob()
   tree->Branch("btag"  , &btag , "btag/F");
   tree->Branch("partonId"  , &partonId , "partonId/I");
   tree->Branch("jetIdLevel"  , &jetIdLevel , "jetIdLevel/I");
-  tree->Branch("nch",&nch,"nch/I");
-  tree->Branch("nnh",&nnh,"nnh/I");
-  tree->Branch("nph",&nph,"nph/I");
-  tree->Branch("pt_ch",pt_ch,"pt_ch[nch]/F");
-  tree->Branch("pt_nh",pt_nh,"pt_nh[nnh]/F");
-  tree->Branch("pt_ph",pt_ph,"pt_ph[nph]/F");
-  tree->Branch("dr_ch",dr_ch,"dr_ch[nch]/F");
-  tree->Branch("dr_nh",dr_nh,"dr_nh[nnh]/F");
-  tree->Branch("dr_ph",dr_ph,"dr_ph[nph]/F");
-  tree->Branch("nDRch", &nDRch, "nDRch/I");
-  tree->Branch("nDRnh", &nDRnh, "nDRnh/I");
-  tree->Branch("nDRph", &nDRph, "nDRph/I");
-  tree->Branch("deltaRch",deltaRch, "deltaRch[nDRch]/F");
-  tree->Branch("deltaRph",deltaRph, "deltaRph[nDRph]/F");
   tree->Branch("pixelSize", &pixelSize, "pixelSize/F");
   tree->Branch("drMax", &drMax, "drMax/F");
   tree->Branch("nPix", &nPix, "nPix/I");

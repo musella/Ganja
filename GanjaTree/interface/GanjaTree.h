@@ -18,10 +18,13 @@
 
 
 class TTree;
+class PileupSummaryInfo;
 
 
 class GanjaTree : public edm::EDAnalyzer {
+
    public:
+
       explicit GanjaTree(const edm::ParameterSet&);
       ~GanjaTree();
 
@@ -29,6 +32,7 @@ class GanjaTree : public edm::EDAnalyzer {
 
 
    private:
+
       virtual void beginJob() ;
       virtual void analyze(const edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
@@ -38,15 +42,19 @@ class GanjaTree : public edm::EDAnalyzer {
       virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
       virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
+      void fillImage( float pt, float dEta, float dPhi, int nPix_1D, float pixelSize, float* image );
+      int getPileUp( edm::Handle<std::vector<PileupSummaryInfo>>& pupInfo );
+
 
       // ----------member data ---------------------------
 
       //const JetCorrector *JEC;
-      TFileService fs;
+      //TFileService fs;
       //edm::Service<TFileService> fs;
-      TTree *tree;
-      float rho, pt, eta, phi, mass, ptGen, etaGen, phiGen, massGen, bTag;
-      int event, run, lumi, partonId;
+      TFile* file;
+      TTree* tree;
+      float rho, pt, eta, phi, mass, ptGen, etaGen, phiGen, massGen, btag;
+      int event, run, lumi, nVert, nPU, partonId, jetIdLevel;
 
       float drMax = 0.3;
       float pixelSize = 0.005;
