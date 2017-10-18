@@ -117,6 +117,7 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      TLorentzVector p4_genJet;
      p4_genJet.SetPtEtaPhiM( it->pt(), it->eta(), it->phi(), it->mass() );
 
+     GenJet* genJet = (GenJet*)(&(*it));
 
      // match to reco:
      float deltaRmax = 0.3;
@@ -155,6 +156,9 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
  
      if( pfJet!=0 ) {
 
+       //getMatchedGenParticle(&*jet, genParticles);
+       //partonId = (matchedJet) ? matchedGenParticle->pdgId() : 0;
+
        std::vector<const reco::Candidate*> pfCands = pfJet->getJetConstituentsQuick();
 
        for( std::vector< const reco::Candidate* >::const_iterator iCand = pfCands.begin(); iCand!=pfCands.end(); ++iCand ) {
@@ -176,6 +180,25 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      } // if PFJet ! = 0
 
+
+     std::vector<const reco::Candidate*> genCands = genJet->getJetConstituentsQuick();
+
+     for( std::vector< const reco::Candidate* >::const_iterator iCand = genCands.begin(); iCand!=genCands.end(); ++iCand ) {
+
+       //if( (*iCand)->pt()<1. ) continue;
+
+       TLorentzVector p4_cand;
+       p4_cand.SetPtEtaPhiM( (*iCand)->pt(), (*iCand)->eta(), (*iCand)->phi(), (*iCand)->mass() );
+
+       float dRcandJet = p4_cand.DeltaR(p4_genJet);
+       if( dRcandJet > drMax ) continue;
+
+       float dEtaCandJet = p4_cand.Eta()-p4_genJet.Eta();
+       float dPhiCandJet = p4_cand.DeltaPhi(p4_genJet);
+
+       this->fillImage( p4_cand.Pt()/p4_genJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageGen );
+
+     } // for cands
 
      tree->Fill();
      nJetsAnalyzed++;
@@ -222,6 +245,29 @@ int GanjaTree::getPileUp( edm::Handle<std::vector<PileupSummaryInfo>>& pupInfo )
   else return -1;
 
 } 
+
+
+
+//reco::GenParticleCollection::const_iterator GanjaTree::getMatchedGenParticle(const TLorentzVector& jet, edm::Handle<reco::GenParticleCollection>& genParticles ) {
+//
+//  float deltaRmin = 999.;
+//  auto matchedGenParticle = genParticles->end();
+//
+//  for ( auto genParticle = genParticles->begin(); genParticle != genParticles->end(); ++genParticle ) {
+//
+//    if( !genParticle->isHardProcess() ) continue; // This status flag is exactly the pythia8 status-23 we need (i.e. the same as genParticles->status() == 23), probably also ok to use for other generators
+//    if( abs(genParticle->pdgId()) > 5 && abs(genParticle->pdgId() != 21) ) continue; // only udscb quarks and gluons
+//
+//    float thisDeltaR = reco::deltaR(*genParticle, *jet);
+//    if(thisDeltaR < deltaRmin && thisDeltaR < deltaRcut){
+//      deltaRmin = thisDeltaR;
+//      matchedGenParticle = genParticle;
+//    }
+//  }
+//  return matchedGenParticle;
+//}
+
+
 
 
 // ------------ method called once each job just before starting event loop  ------------
