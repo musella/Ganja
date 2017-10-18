@@ -1,6 +1,6 @@
 # Welcome to GAN Jet Analysis (Ganja)
 
-After checking out the git repository, compile the analyzer with `scram b -j 4`.
+After checking out the git repository, move to the `GanjaTree` directory, and compile the analyzer with `scram b -j 4`.
 
 Then move to the `test` directory and run the config with `cmsRun ganjatree_cfg.py`. By default it will loop over the first 100 entries of a QCD Pt50-80 MC file found in:
 
