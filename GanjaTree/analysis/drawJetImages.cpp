@@ -211,8 +211,9 @@ void drawImages( TTree* tree, int entryStart, int entryStop, int baseColor ) {
     gPad->RedrawAxis();
 
 
-    c1->SaveAs( Form("jetImages/jetImage_%d.pdf", iEntry) );
-    c1->SaveAs( Form("jetImages/jetImage_%d.eps", iEntry) );
+    c1->SaveAs( Form("jetImages/jetImage_%d.png", iEntry) );
+    // c1->SaveAs( Form("jetImages/jetImage_%d.pdf", iEntry) );
+    // c1->SaveAs( Form("jetImages/jetImage_%d.eps", iEntry) );
 
 
     delete c1;
