@@ -7,7 +7,7 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.TFileService = cms.Service("TFileService",
-      fileName = cms.string("ganjaTree_XXXJOBNUMBER.root"),
+      fileName = cms.string("XXXOUTFILE"),
       closeFileFast = cms.untracked.bool(True)
 )
 
