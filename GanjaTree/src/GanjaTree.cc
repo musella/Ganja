@@ -39,6 +39,7 @@
 #include "TTree.h"
 #include "TLorentzVector.h"
 
+#include <cmath>
 
 //
 // constants, enums and typedefs
@@ -175,11 +176,14 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
          TLorentzVector p4_cand;
          p4_cand.SetPtEtaPhiM( (*iCand)->pt(), (*iCand)->eta(), (*iCand)->phi(), (*iCand)->mass() );
 
-         float dRcandJet = p4_cand.DeltaR(p4_pfJet);
-         if( dRcandJet > drMax ) continue;
+         // float dRcandJet = p4_cand.DeltaR(p4_pfJet);
+         // if( dRcandJet > drMax ) continue;
 
          float dEtaCandJet = p4_cand.Eta()-p4_pfJet.Eta();
          float dPhiCandJet = p4_cand.DeltaPhi(p4_pfJet);
+	 dEtaCandJet = std::copysign(std::min(drMax,std::abs(dEtaCandJet)),dEtaCandJet);
+	 dPhiCandJet = std::copysign(std::min(drMax,std::abs(dPhiCandJet)),dPhiCandJet);
+	 
 
          this->fillImage( p4_cand.Pt()/p4_pfJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageReco );
 
@@ -197,11 +201,13 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        TLorentzVector p4_cand;
        p4_cand.SetPtEtaPhiM( (*iCand)->pt(), (*iCand)->eta(), (*iCand)->phi(), (*iCand)->mass() );
 
-       float dRcandJet = p4_cand.DeltaR(p4_genJet);
-       if( dRcandJet > drMax ) continue;
+       // float dRcandJet = p4_cand.DeltaR(p4_genJet);
+       // if( dRcandJet > drMax ) continue;
 
        float dEtaCandJet = p4_cand.Eta()-p4_genJet.Eta();
        float dPhiCandJet = p4_cand.DeltaPhi(p4_genJet);
+       dEtaCandJet = std::copysign(std::min(drMax,std::abs(dEtaCandJet)),dEtaCandJet);
+       dPhiCandJet = std::copysign(std::min(drMax,std::abs(dPhiCandJet)),dPhiCandJet);
 
        this->fillImage( p4_cand.Pt()/p4_genJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageGen );
 
@@ -227,8 +233,8 @@ void GanjaTree::fillImage( float ptRatio, float dEta, float dPhi, int nPix_1D, f
   dEta += (float)nPix_1D/2.;
   dPhi += (float)nPix_1D/2.;
 
-  int etaBin = (int)dEta;
-  int phiBin = (int)dPhi*nPix_1D;
+  int etaBin = (int)std::round(dEta);
+  int phiBin = (int)std::round(dPhi)*nPix_1D;
 
   if( etaBin < 0 ) {
     std::cout << "WARNING!! dEta=" << dEta << std::endl;
