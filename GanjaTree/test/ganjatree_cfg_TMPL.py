@@ -3,6 +3,9 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Ganja")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
+
+
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
