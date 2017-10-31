@@ -6,6 +6,7 @@ from skimage.transform import downscale_local_mean
 
 import os
 import json
+import gc
 
 # -------------------------------------------------------------------------------------------
 def read_root(fnames,tree=None,inpshape=(120,120,1),
@@ -42,11 +43,14 @@ def read_root(fnames,tree=None,inpshape=(120,120,1),
     else:
         gen = np.vstack(arr[imgen]).reshape( (-1,)+inpshape )
         reco = np.vstack(arr[imreco]).reshape( (-1,)+inpshape )
-
+    gc.collect()
+    
     cols = { x:arr[x] for x in keys}
     df = pd.DataFrame(data=cols)
     if post_process:
         gen,reco = post_process(df,gen,reco)
+
+    # gc.collect()
     return df,gen,reco
 
 # -------------------------------------------------------------------------------------------
@@ -56,9 +60,10 @@ def write_out(dest,folder,fnum,record,df,gen,reco):
     if not os.path.exists(dirname):
         os.mkdir(dirname)
     basename = "%s/%d" % (dirname,fnum)
-    df.to_hdf(basename+'.hd5','info',format='t',mode='w',complib='bzip2',complevel=9)
-    np.savez_compressed(basename+'_gen.npz',gen)
-    np.savez_compressed(basename+'_reco.npz',reco)
+    df.to_hdf(basename+'_info.hd5','info',format='t',mode='w',complib='bzip2',complevel=9)
+    np.savez_compressed(basename+'_images.npz',gen=gen,reco=reco)
+    ## np.savez_compressed(basename+'_gen.npz',dict(gen=gen))
+    ## np.savez_compressed(basename+'_reco.npz',dict(reco=reco))
     rec = open(basename+'.json','w+')
     rec.write(json.dumps( record  ))
     rec.close()
