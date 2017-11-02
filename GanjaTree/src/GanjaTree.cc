@@ -152,10 +152,10 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      if( deltaRbest > deltaRmax ) { // no match
 
-       pt   = -1.;
+       pt   = 0.;
        eta  = -999.;
-       phi  = -999.;
-       mass = -1.;
+       phi  = 0.;
+       mass = 0.;
 
      } else {
  
