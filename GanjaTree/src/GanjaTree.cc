@@ -150,12 +150,21 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      }
 
-     if( deltaRbest > deltaRmax ) continue; // no match, no party
+     if( deltaRbest > deltaRmax ) { // no match
 
-     pt   = p4_pfJet.Pt();
-     eta  = p4_pfJet.Eta();
-     phi  = p4_pfJet.Phi();
-     mass = p4_pfJet.M();
+       pt   = -1.;
+       eta  = -999.;
+       phi  = -999.;
+       mass = -1.;
+
+     } else {
+ 
+       pt   = p4_pfJet.Pt();
+       eta  = p4_pfJet.Eta();
+       phi  = p4_pfJet.Phi();
+       mass = p4_pfJet.M();
+
+     }
  
      ptGen   = p4_genJet.Pt();
      etaGen  = p4_genJet.Eta();
@@ -176,16 +185,14 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
          TLorentzVector p4_cand;
          p4_cand.SetPtEtaPhiM( (*iCand)->pt(), (*iCand)->eta(), (*iCand)->phi(), (*iCand)->mass() );
 
-         // float dRcandJet = p4_cand.DeltaR(p4_pfJet);
-         // if( dRcandJet > drMax ) continue;
+         float dEtaCandJet = p4_cand.Eta()-p4_genJet.Eta();
+         float dPhiCandJet = p4_cand.DeltaPhi(p4_genJet);
 
-         float dEtaCandJet = p4_cand.Eta()-p4_pfJet.Eta();
-         float dPhiCandJet = p4_cand.DeltaPhi(p4_pfJet);
-	 dEtaCandJet = std::copysign(std::min(drMax,std::abs(dEtaCandJet)),dEtaCandJet);
-	 dPhiCandJet = std::copysign(std::min(drMax,std::abs(dPhiCandJet)),dPhiCandJet);
-	 
+         dEtaCandJet = std::copysign(std::min(drMax,std::abs(dEtaCandJet)),dEtaCandJet);
+         dPhiCandJet = std::copysign(std::min(drMax,std::abs(dPhiCandJet)),dPhiCandJet);
+          
 
-         this->fillImage( p4_cand.Pt()/p4_pfJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageReco );
+         this->fillImage( p4_cand.Pt()/p4_genJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageReco );
 
        } // for cands
 
@@ -200,9 +207,6 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        TLorentzVector p4_cand;
        p4_cand.SetPtEtaPhiM( (*iCand)->pt(), (*iCand)->eta(), (*iCand)->phi(), (*iCand)->mass() );
-
-       // float dRcandJet = p4_cand.DeltaR(p4_genJet);
-       // if( dRcandJet > drMax ) continue;
 
        float dEtaCandJet = p4_cand.Eta()-p4_genJet.Eta();
        float dPhiCandJet = p4_cand.DeltaPhi(p4_genJet);
