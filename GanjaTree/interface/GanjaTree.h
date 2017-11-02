@@ -57,7 +57,7 @@ class GanjaTree : public edm::EDAnalyzer {
       float rho, pt, eta, phi, mass, ptGen, etaGen, phiGen, massGen, btag;
       int event, run, lumi, nVert, nPU, partonId, jetIdLevel;
 
-      float pixelSize = 0.005;
+      float pixelSize = 0.0046875; // so as to have 64x2 pixels
       float drMax = 0.3 + pixelSize;
 
       unsigned int nPix_1D= 2* int(drMax/pixelSize);
