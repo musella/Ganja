@@ -21,4 +21,4 @@ def read_xsection(folder,index):
     index = json.loads(idx.read())
     idx.close()
 
-    return idx[folder]
+    return index[os.path.basename(folder)]

@@ -8,6 +8,8 @@ import os
 import json
 import gc
 
+from . import utils
+
 # -------------------------------------------------------------------------------------------
 def read_root(fnames,tree=None,inpshape=(120,120,1),
               imgen='jetImageGen',imreco='jetImageReco',
@@ -68,7 +70,33 @@ def write_out(dest,folder,fnum,record,df,gen,reco):
     rec.write(json.dumps( record  ))
     rec.close()
     
-    
-    
+
+
+# -------------------------------------------------------------------------------------------
+def read_dataset(folder,files,proc,xs, **kwargs):
+    dfs = []
+    nevents = 0.
+    for fil in files:
+        jfil = open(os.path.join(folder,'%s.json' % fil))
+        nevents += json.loads(jfil.read())['nevents']
+        jfil.close()
+        dfs.append( pd.read_hdf(os.path.join(folder,'%s_info.hd5' % fil, **kwargs) ) )
+    df = pd.concat(dfs)
+    df['weight'] = xs / nevents
+    df['proc'] = proc
+    return df
+
+# -------------------------------------------------------------------------------------------
+def read_datasets(inputs,cross_sections="data/cross_sections.json", **kwargs):
+
+    dfs = []
+    proc_ids = {}
+    for proc,item in enumerate(inputs.items()):
+        folder,files = item
+        xs = utils.read_xsection(folder,cross_sections)
+        proc_ids[proc] = folder
+        print('reading %s' % folder)
+        dfs.append( read_dataset(folder,files,proc,xs, **kwargs) )
+    return proc_ids,pd.concat(dfs)
 
     
