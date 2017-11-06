@@ -1,10 +1,12 @@
 #!/bin/bash
 
-base=/mnt/t3nfs01/data01/shome/pandolf/CMSSW_5_3_32_Ganja/src/Ganja/GanjaTree/test
+base=/scratch/musella/ganja
 
-prod=prod_oct25_v0
+prod=nov2
 
-outdir=/scratch/musella/ganja
+outdir=$base/converted
 
-ls --color=none -C1 $base/$prod/ | parallel --gnu --ungroup -j 5 "./scripts/run_folder.sh {} $base $prod $outdir"
+ls --color=none -C1 $base/production/$prod/ | parallel --gnu --ungroup -j 5 "./scripts/run_folder.sh {} $base/production $prod $outdir"
 
+
+nb_batch split.ipynb logs/split_${prod}.ipynb  --Parameters.base=$base --Parameters.version=$prod  --Parameters.nparts=200 --Parameters.njobs=10 >& logs/split_${prod}.log

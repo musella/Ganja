@@ -24,3 +24,13 @@ def resize(target,gen,reco,reco_adjust=1.):
     
     return gen,reco
 
+# ------------------------------------------------------------------------------------------
+def pixel_metrics(images,axis=0):
+    return np.array([images.min(axis=axis),images.max(axis=axis),images.mean(axis=axis),images.std(axis=axis)], dtype=[('min',np.float32),('max',np.float32),('mean',np.float32),('std',np.float32)])
+
+
+## # ------------------------------------------------------------------------------------------
+## def aggregate_metrics(metrics,axis=0):
+##     aggregate = np.concatenate( metrics )
+##     return np.array( [aggregate['min'].min(axis=axis),aggregate['max'].max(axis=axis),
+##                       aggregate['mean'].sum(axis=axis) / aggregate['count']]
