@@ -13,7 +13,8 @@ import json
 import gc
 
 
-from tqdm import tqdm_notebook as tqdm
+## from tqdm import tqdm_notebook as tqdm
+from tqdm import tqdm
 
 from . import utils
 from .preprocessing import pixel_metrics
@@ -99,14 +100,20 @@ def read_dataset(folder,files,proc,xs, **kwargs):
     nevents = 0.
     for fil in tqdm(files,desc=os.path.basename(folder),leave=False):
         jfil = open(os.path.join(folder,'%s.json' % fil))
-        nevents += json.loads(jfil.read())['nevents']
+        try:
+            nevents += json.loads(jfil.read())['nevents']
+        except:
+            pass
         jfil.close()
         df = pd.read_hdf(os.path.join(folder,'%s_info.hd5' % fil, **kwargs) )
         df['file'] = fil
         df['row'] = df.index
         dfs.append( df  )
     df = pd.concat(dfs)
-    df['weight'] = xs / nevents
+    if nevents > 0.:
+        df['weight'] = xs / nevents
+    else:
+        df['weight'] = 1.
     df['proc'] = proc
     return df
 
@@ -117,7 +124,10 @@ def read_datasets(inputs,cross_sections="data/cross_sections.json", **kwargs):
     proc_ids = {}
     for proc,item in tqdm(enumerate(inputs.items()),desc='reading datasets'):
         folder,files = item
-        xs = utils.read_xsection(folder,cross_sections)
+        try:
+            xs = utils.read_xsection(folder,cross_sections)
+        except:
+            xs = 1.
         proc_ids[proc] = folder
         # print('reading %s' % folder)
         dfs.append( read_dataset(folder,files,proc,xs, **kwargs) )
@@ -141,7 +151,12 @@ def read_images(folder,files,compressed=True,**kwargs):
         return fils
     else:
         return gens,recos
-    
+
+
+# -------------------------------------------------------------------------------------------
+def unpack_images():
+    pass
+
 # -------------------------------------------------------------------------------------------
 def read_datasets_images(inputs, quiet=False, **kwargs):
 

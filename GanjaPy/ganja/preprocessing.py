@@ -1,6 +1,8 @@
 import numpy as np
 from skimage.transform import downscale_local_mean
 
+from GAN.preprocessing import *
+
 # ------------------------------------------------------------------------------------------
 def rescale_by_pt(arr,gen,reco):
     gen *= (arr['pt'] / arr['ptGen']).reshape(-1,1,1,1)
