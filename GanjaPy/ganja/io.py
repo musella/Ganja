@@ -128,7 +128,7 @@ def read_datasets(inputs,cross_sections="data/cross_sections.json", **kwargs):
 def read_images(folder,files,compressed=True,**kwargs):
     fils = []
     gens, recos = [], []
-    for fil in files:
+    for fil in tqdm(files,desc=os.path.basename(folder),leave=False):
         if compressed:
             jfil = np.load(os.path.join(folder,'%s_images.npz' % fil), **kwargs )
             fils.append(jfil)
@@ -149,7 +149,7 @@ def read_datasets_images(inputs, quiet=False, **kwargs):
     ## reco = []
     fils = []
     proc_ids = {}
-    for proc,item in enumerate(inputs.items()):
+    for proc,item in tqdm(enumerate(inputs.items()),desc='reading images'):
         folder,files = item
         if not quiet:
             print('reading images from %s' % folder)
