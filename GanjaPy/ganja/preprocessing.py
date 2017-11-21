@@ -3,6 +3,44 @@ from skimage.transform import downscale_local_mean
 
 from GAN.preprocessing import *
 
+
+# ------------------------------------------------------------------------------------------
+class WeighterWithCache:
+
+    def __init__(self,df,variables,bins,weights,base=None,offset=False):
+        self.df = df
+        self.variables = variables
+        self.bins = bins
+        self.weights = weights
+        self.base = base
+        self.offset = offset
+        self.cache_ = None
+
+    def get(self):
+        if self.cache_ is None:
+            self.cache_ = reweight(self.df,self.variables,self.bins,self.weights,self.base,self.offset).values
+            self.df,self.bins,self.weights = None,None,None
+        return self.cache_
+    
+    
+# ------------------------------------------------------------------------------------------
+def normalize(x,mean,std,reg=None):
+    x -= mean
+    if reg is not None:
+        x /= np.sqrt(std**2+reg**2)
+    else:
+        x /= std
+    return x
+    ## if reg is not None:
+    ##     return (x - mean)/np.sqrt(std**2+reg**2)
+    ## return (x - mean)/std    
+
+# ------------------------------------------------------------------------------------------
+def unnormalize(x,mean,std,reg=None):
+    if reg is not None:
+        return x*np.sqrt(std**2+reg**2) + mean
+    return x*std + mean
+
 # ------------------------------------------------------------------------------------------
 def rescale_by_pt(arr,gen,reco):
     gen *= (arr['pt'] / arr['ptGen']).reshape(-1,1,1,1)
