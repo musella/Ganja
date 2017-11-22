@@ -6,14 +6,14 @@ This folders contains notebooks and scripts to preprocess the data and run train
 
 The basic depdencies are tensorflow and the packages in `packs.txt`. It's a good practice to create
 a dedicated virtualenv for this.
-`virtualenv <myenv_folder>`
-`source <myenv_folder>/bin/activate`
-`pip install -r packs.txt`
+```virtualenv <myenv_folder>
+source <myenv_folder>/bin/activate
+pip install -r packs.txt```
 
 Also, this package depends on https://github.com/musella/GAN. You should clone the package and make sure that its base
 folder is in the python path.
-`git clone https://github.com/musella/GAN.git <dest_path>`
-`export PYTHONPATH=<dest_path>:$PYTHONPAH`
+```git clone https://github.com/musella/GAN.git <dest_path>
+export PYTHONPATH=<dest_path>:$PYTHONPAH```
 
 Finally, to run the conversion step, you will also ROOT.
 
@@ -61,5 +61,4 @@ The script `scripts/run_folders.sh` runs the conversion step with parallel jobs.
 ## Training
 
 The training script is `train.py`. It's way too fresh to describe it here, but the code should be easy to understand.
-
 
