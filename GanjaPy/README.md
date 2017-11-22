@@ -8,16 +8,18 @@ The basic depdencies are tensorflow and the packages in `packs.txt`. It's a good
 a dedicated virtualenv for this.
 ```virtualenv <myenv_folder>
 source <myenv_folder>/bin/activate
-pip install -r packs.txt```
+pip install -r packs.txt
+```
 
 Also, this package depends on https://github.com/musella/GAN. You should clone the package and make sure that its base
 folder is in the python path.
 ```git clone https://github.com/musella/GAN.git <dest_path>
-export PYTHONPATH=<dest_path>:$PYTHONPAH```
+export PYTHONPATH=<dest_path>:$PYTHONPAH
+```
 
 Finally, to run the conversion step, you will also ROOT.
 
-### To use this on Piz Daint
+### On Piz Daint
 ```module load python_virtualenv daint-gpu TensorFlow
 virtualenv ~/my-env
 source ~/my-env/bin/activate
