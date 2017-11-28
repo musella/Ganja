@@ -305,7 +305,7 @@ class Worker:
 class MultiReader:
 
     
-    def __init__(self,inputs,ncache,nthreads,*args,**kwargs):
+    def __init__(self,inputs,ncache,nthreads,*args,soft_mask=False,**kwargs):
 
         self.readers = [  Reader({folder:[fil]},*args,**kwargs) for folder,files in inputs.items() for fil in files  ]
 
@@ -320,8 +320,10 @@ class MultiReader:
         self.occupancy = []
         self.has_cond = len(kwargs.get("cond_names",[]))>0
         self.has_noise = kwargs.get("noise_dim",0)>0
+        self.has_aux_noise = kwargs.get("aux_noise",False)
+        self.soft_mask = soft_mask
         print('Has cond: ',self.has_cond)
-        print('Has noise: ',self.has_noise)
+        print('Has noise: ',self.has_noise,self.has_aux_noise)
         
     def start(self):
         for worker in self.workers: worker.start()
@@ -332,13 +334,22 @@ class MultiReader:
             self.out_queue.get()
         
     def __call__(self,batch_size,win0=None,win1=None):
-        def get_batch(xvals,yvals,weights,noise,cond,first,last):
+        def get_batch(xvals,yvals,weights,noise,cond,aux_noise,first,last):
             xret = [xvals[first:last,win0:win1,win0:win1]]
             if noise is not None:
                 xret.append(noise[first:last])
             if cond is not None:
                 xret.append(cond[first:last])
-            return xret,yvals[first:last,win0:win1,win0:win1],weights[first:last]
+            if aux_noise is not None:
+                xret.append(aux_noise[first:last,win0:win1,win0:win1])
+            yret = yvals[first:last,win0:win1,win0:win1]
+            if self.soft_mask:
+                yret = np.concatenate([yret,np.greater(yret,0.)],axis=-1)
+            ## if len(yret) > 0:
+            ##     wret = [weights[first:last],weights[first:last]]
+            ## else:
+            wret = weights[first:last]
+            return xret,yret,wret
         while True:
             for iread in range(len(self.readers)):
                 self.occupancy.append(self.out_queue.qsize())
@@ -349,18 +360,20 @@ class MultiReader:
                 ## else:
                 ##     yvals,xvals,cond,weights = read
                 xvals,yvals = read[:2]
-                cond,noise = None,None
+                cond,noise,aux_noise = None,None,None
                 if self.has_noise:
                     noise = read[2]
                 if self.has_cond:
                     cond = read[2+self.has_noise]
+                if self.has_aux_noise:
+                    aux_noise = read[2+self.has_noise+self.has_cond]
                 weights = read[-1]
                 self.out_queue.task_done()
                 nbatches = yvals.shape[0] // batch_size
                 for ibatch in range(nbatches):
-                    yield get_batch(xvals,yvals,weights,noise,cond,ibatch*batch_size,(ibatch+1)*batch_size)
+                    yield get_batch(xvals,yvals,weights,noise,cond,aux_noise,ibatch*batch_size,(ibatch+1)*batch_size)
                 if yvals.shape[0] % batch_size != 0:
-                    yield get_batch(xvals,yvals,weights,noise,cond,nbatches*batch_size,-1)
+                    yield get_batch(xvals,yvals,weights,noise,cond,aux_noise,nbatches*batch_size,-1)
                 
     
 # ------------------------------------------------------------------------------------------
@@ -368,7 +381,7 @@ class Reader:
 
     def __init__(self,inputs,weights,gen_moments=None,reco_moments=None,
                  cond_names=[],cond_transform=None,cache_img=False,cache_cond=False,
-                 compressed=False,shuffle=True,swap=False,noise_dim=0):
+                 compressed=False,shuffle=True,swap=False,noise_dim=0,aux_noise=False):
         self.inputs = inputs
         self.cache_img = cache_img
         self.cache_cond = cache_cond
@@ -381,6 +394,7 @@ class Reader:
         self.swap = swap
         self.shuffle = shuffle
         self.noise_dim = noise_dim
+        self.aux_noise = aux_noise
         self.cold_ = True
         self.weighter_ = None
         self.reco_ = None
@@ -451,6 +465,9 @@ class Reader:
             rets.append(np.random.normal(0,1,(gen.shape[0],1,self.noise_dim)))
         if cond is not None:
             rets.append(cond)
+        if self.aux_noise:
+            rets.append(np.random.uniform(size=gen.shape))
+            ## print(rets[-1].shape)
         rets.append(weights)
         if self.shuffle:
             return shuffle(*rets)

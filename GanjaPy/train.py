@@ -45,7 +45,9 @@ class Parameters(utils.Parameters):
     n_encoding=utils.param(6)
     max_encoding=utils.param(16)
     decoding_last_plateau=utils.param(2)
-
+    stochastic_layer=utils.param(False)
+    soft_mask=utils.param(False)
+    
     ## nfilters = utils.param(8)
     ## n_encoding=utils.param(5)
     ## max_encoding=utils.param(16)
@@ -62,7 +64,7 @@ class Parameters(utils.Parameters):
     # ---------------------------------------------------------------
     batch_size = utils.param(256)
     epochs = utils.param(200)
-    loss = 'stratified_mean_squared_error' ## mean_squared_error
+    loss = utils.param('stratified_mean_absolute_error') ## mean_squared_error
     
     # misc
     # ---------------------------------------------------------------
@@ -119,8 +121,9 @@ print(train_inputs)
 print("Validation inputs")
 print(valid_inputs)
 
-readers_kwargs=dict(compressed=COMPRESSED,cache_img=True,cache_cond=True,
-                    cond_names=COND_VARIABLES,noise_dim=NOISE_DIM
+readers_kwargs=dict(compressed=COMPRESSED,cache_img=False,cache_cond=True,
+                    cond_names=COND_VARIABLES,noise_dim=NOISE_DIM,
+                    aux_noise=STOCHASTIC_LAYER,soft_mask=SOFT_MASK
 )
 #,gen_moments=gen_moments)
 
@@ -143,7 +146,9 @@ if NOISE_DIM > 0:
 model = unet.UnetGBuilder(nfilters=NFILTERS,
                           n_encoding=N_ENCODING,
                           max_encoding=MAX_ENCODING,
-                          decoding_last_plateau=DECODING_LAST_PLATEAU)(
+                          decoding_last_plateau=DECODING_LAST_PLATEAU,
+                          stochastic_layer=STOCHASTIC_LAYER,
+                          soft_mask=SOFT_MASK)(
                               x_shape=(IMG_SIZE,IMG_SIZE,1),
                               c_shape=c_shape,
                               z_shape=z_shape
@@ -186,8 +191,8 @@ model.fit_generator(train_generator,steps_per_epoch=train_nbatches,
 
 # Done
 # ---------------------------------------------------------------
-train_reader.stop()
-valid_reader.stop()
+## train_reader.stop()
+## valid_reader.stop()
 
 import sys
 sys.exit(0)
