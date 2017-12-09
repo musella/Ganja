@@ -178,6 +178,14 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        std::vector<const reco::Candidate*> pfCands = pfJet->getJetConstituentsQuick();
 
+       float sum_weight   = 0.;
+       float sum_deta     = 0.; 
+       float sum_dphi     = 0.; 
+       float sum_deta2    = 0.; 
+       float sum_dphi2    = 0.;
+       float sum_detadphi = 0.;
+       float sum_pt       = 0.;
+
        for( std::vector< const reco::Candidate* >::const_iterator iCand = pfCands.begin(); iCand!=pfCands.end(); ++iCand ) {
 
          //if( (*iCand)->pt()<1. ) continue;
@@ -194,12 +202,32 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
          this->fillImage( p4_cand.Pt()/p4_genJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageReco );
 
+         float p2 = p4_cand.Pt()*p4_cand.Pt();
+         sum_pt       += p4_cand.Pt();
+         sum_weight   += p2;
+         sum_deta     += dEtaCandJet*p2;
+         sum_dphi     += dPhiCandJet*p2;
+         sum_deta2    += dEtaCandJet*dEtaCandJet*p2;
+         sum_detadphi += dEtaCandJet*dPhiCandJet*p2;
+         sum_dphi2    += dPhiCandJet*dPhiCandJet*p2;
+
        } // for cands
+       
+       computeQGvars( sum_weight, sum_pt, sum_deta, sum_dphi, sum_deta2, sum_dphi2, sum_detadphi, axis1, axis2, ptD );
 
      } // if PFJet ! = 0
 
 
      std::vector<const reco::Candidate*> genCands = genJet->getJetConstituentsQuick();
+
+     float gensum_weight   = 0.;
+     float gensum_deta     = 0.; 
+     float gensum_dphi     = 0.; 
+     float gensum_deta2    = 0.; 
+     float gensum_dphi2    = 0.;
+     float gensum_detadphi = 0.;
+     float gensum_pt       = 0.;
+
 
      for( std::vector< const reco::Candidate* >::const_iterator iCand = genCands.begin(); iCand!=genCands.end(); ++iCand ) {
 
@@ -215,7 +243,18 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        this->fillImage( p4_cand.Pt()/p4_genJet.Pt(), dEtaCandJet, dPhiCandJet, nPix_1D, pixelSize, jetImageGen );
 
+       float p2 = p4_cand.Pt()*p4_cand.Pt();
+       gensum_pt       += p4_cand.Pt();
+       gensum_weight   += p2;
+       gensum_deta     += dEtaCandJet*p2;
+       gensum_dphi     += dPhiCandJet*p2;
+       gensum_deta2    += dEtaCandJet*dEtaCandJet*p2;
+       gensum_detadphi += dEtaCandJet*dPhiCandJet*p2;
+       gensum_dphi2    += dPhiCandJet*dPhiCandJet*p2;
+
      } // for cands
+
+     computeQGvars( gensum_weight, gensum_pt, gensum_deta, gensum_dphi, gensum_deta2, gensum_dphi2, gensum_detadphi, axis1Gen, axis2Gen, ptDGen );
 
      tree->Fill();
      nJetsAnalyzed++;
@@ -250,6 +289,27 @@ void GanjaTree::fillImage( float ptRatio, float dEta, float dPhi, int nPix_1D, f
   }
 
   image[ etaBin + phiBin ] += ptRatio;
+
+}
+
+
+void GanjaTree::computeQGvars( float sum_weight, float sum_pt, float sum_deta, float sum_dphi, float sum_deta2, float sum_dphi2, float sum_detadphi, float& a_axis1, float& a_axis2, float& a_ptD ) {
+
+  float a = 0., b = 0., c = 0.;
+  float ave_deta = 0., ave_dphi = 0., ave_deta2 = 0., ave_dphi2 = 0.;
+  if(sum_weight > 0){
+    ave_deta  = sum_deta/sum_weight;
+    ave_dphi  = sum_dphi/sum_weight;
+    ave_deta2 = sum_deta2/sum_weight;
+    ave_dphi2 = sum_dphi2/sum_weight;
+    a         = ave_deta2 - ave_deta*ave_deta;                          
+    b         = ave_dphi2 - ave_dphi*ave_dphi;                          
+    c         = -(sum_detadphi/sum_weight - ave_deta*ave_dphi);                
+  }
+  float delta = sqrt(fabs((a-b)*(a-b)+4*c*c));
+  a_axis2 = (a+b-delta > 0 ?  sqrt(0.5*(a+b-delta)) : 0);
+  a_axis1 = (a+b+delta > 0 ?  sqrt(0.5*(a+b+delta)) : 0);
+  a_ptD   = (sum_weight > 0 ? sqrt(sum_weight)/sum_pt : 0);
 
 }
 
@@ -310,10 +370,16 @@ GanjaTree::beginJob()
   tree->Branch("eta"   , &eta  , "eta/F");
   tree->Branch("phi"   , &phi  , "phi/F");
   tree->Branch("mass"  , &mass , "mass/F");
+  tree->Branch("axis1" , &axis1, "axis1/F");
+  tree->Branch("axis2" , &axis2, "axis2/F");
+  tree->Branch("ptD"   , &ptD  , "ptD/F");
   tree->Branch("ptGen"    , &ptGen   , "ptGen/F");
   tree->Branch("etaGen"   , &etaGen  , "etaGen/F");
   tree->Branch("phiGen"   , &phiGen  , "phiGen/F");
   tree->Branch("massGen"  , &massGen , "massGen/F");
+  tree->Branch("axis1Gen" , &axis1Gen, "axis1Gen/F");
+  tree->Branch("axis2Gen" , &axis2Gen, "axis2Gen/F");
+  tree->Branch("ptDGen"   , &ptDGen  , "ptDGen/F");
   tree->Branch("btag"  , &btag , "btag/F");
   tree->Branch("partonId"  , &partonId , "partonId/I");
   tree->Branch("jetIdLevel"  , &jetIdLevel , "jetIdLevel/I");
