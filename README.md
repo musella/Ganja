@@ -2,27 +2,25 @@
 
 After checking out the git repository, move to the `GanjaTree` directory. You're gonna have to install fastjet:
 
-`
-curl -O http://fastjet.fr/repo/fastjet-3.3.0.tar.gz 
-tar zxvf fastjet-3.3.0.tar.gz
-cd fastjet-3.3.0/
-./configure --prefix=$PWD/../fastjet-install
-make 
-make check
-make install
-cd ..
-wget http://fastjet.hepforge.org/contrib/downloads/fjcontrib-1.030.tar.gz
-tar -zxvf fjcontrib-1.030.tar.gz
-cd fjcontrib-1.030/
-./configure --fastjet-config="$PWD/../fastjet-install/bin/fastjet-config"
-make 
-make check
-make install
-make fragile-shared-install
-mv libfastjetcontribfragile.so ../fastjet-install/lib/
-cd ..
-cp extras/fastjet.xml ../../../config/toolbox/slc6_amd64_gcc472/tools/selected/
-`
+`curl -O http://fastjet.fr/repo/fastjet-3.3.0.tar.gz `
+`tar zxvf fastjet-3.3.0.tar.gz`
+`cd fastjet-3.3.0/`
+`./configure --prefix=$PWD/../fastjet-install`
+`make `
+`make check`
+`make install`
+`cd ..`
+`wget http://fastjet.hepforge.org/contrib/downloads/fjcontrib-1.030.tar.gz`
+`tar -zxvf fjcontrib-1.030.tar.gz`
+`cd fjcontrib-1.030/`
+`./configure --fastjet-config="$PWD/../fastjet-install/bin/fastjet-config"`
+`make `
+`make check`
+`make install`
+`make fragile-shared-install`
+`mv libfastjetcontribfragile.so ../fastjet-install/lib/`
+`cd ..`
+`cp extras/fastjet.xml ../../../config/toolbox/slc6_amd64_gcc472/tools/selected/`
 
 
 , and compile the analyzer with `scram b -j 4`.
