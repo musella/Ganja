@@ -41,6 +41,18 @@
 
 #include <cmath>
 
+#include "fastjet/ClusterSequence.hh"
+#include "fastjet/ClusterSequenceArea.hh"
+#include "fastjet/AreaDefinition.hh"
+#include "fastjet/GhostedAreaSpec.hh"
+#include "fastjet/PseudoJet.hh"
+#include "fastjet/JetDefinition.hh"
+
+#include "fastjet/contrib/Nsubjettiness.hh"
+#include "fastjet/contrib/Njettiness.hh"
+#include "fastjet/contrib/NjettinessPlugin.hh"
+
+
 //
 // constants, enums and typedefs
 //
@@ -110,6 +122,22 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nPU   = getPileUp(pupInfo);
 
 
+   //// Defining Nsubjettiness parameters
+   //double beta = 1.0; // power for angular dependence, e.g. beta = 1 --> linear k-means, beta = 2 --> quadratic/classic k-means
+   //double R0 = 1.0; // Characteristic jet radius for normalization	      
+   //double Rcut = 1.0; // maximum R particles can be from axis to be included in jet	      
+ 
+   fastjet::contrib::Nsubjettiness nSub1KT(1, fastjet::contrib::OnePass_KT_Axes(), fastjet::contrib::UnnormalizedMeasure(1));
+   fastjet::contrib::Nsubjettiness nSub2KT(2, fastjet::contrib::OnePass_KT_Axes(), fastjet::contrib::UnnormalizedMeasure(1));
+
+   fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, 0.4);    
+   int activeAreaRepeats = 1;
+   double ghostArea = 0.01;
+   double ghostEtaMax = 7.0;
+   fastjet::GhostedAreaSpec fjActiveArea(ghostEtaMax,activeAreaRepeats,ghostArea);
+   fastjet::AreaDefinition fjAreaDefinition( fastjet::active_area, fjActiveArea );
+
+
    int maxJetsAnalyzed = 2;
    int nJetsAnalyzed   = 0;
 
@@ -126,6 +154,7 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      p4_genJet.SetPtEtaPhiM( it->pt(), it->eta(), it->phi(), it->mass() );
 
      GenJet* genJet = (GenJet*)(&(*it));
+
 
      // match to reco:
      float deltaRmax = 0.3;
@@ -219,6 +248,8 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
      std::vector<const reco::Candidate*> genCands = genJet->getJetConstituentsQuick();
+     fastjet::PseudoJet curjet;  
+     std::vector< fastjet::PseudoJet > newparticles;
 
      float gensum_weight   = 0.;
      float gensum_deta     = 0.; 
@@ -229,9 +260,12 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      float gensum_pt       = 0.;
 
 
+     int iCandGen=0;
+
      for( std::vector< const reco::Candidate* >::const_iterator iCand = genCands.begin(); iCand!=genCands.end(); ++iCand ) {
 
        //if( (*iCand)->pt()<1. ) continue;
+       newparticles.push_back( fastjet::PseudoJet( (*iCand)->px(), (*iCand)->py(), (*iCand)->pz(), (*iCand)->energy() ) );
 
        TLorentzVector p4_cand;
        p4_cand.SetPtEtaPhiM( (*iCand)->pt(), (*iCand)->eta(), (*iCand)->phi(), (*iCand)->mass() );
@@ -252,9 +286,20 @@ GanjaTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        gensum_detadphi += dEtaCandJet*dPhiCandJet*p2;
        gensum_dphi2    += dPhiCandJet*dPhiCandJet*p2;
 
+       iCandGen++;
+
      } // for cands
 
      computeQGvars( gensum_weight, gensum_pt, gensum_deta, gensum_dphi, gensum_deta2, gensum_dphi2, gensum_detadphi, axis1Gen, axis2Gen, ptDGen );
+
+     fastjet::ClusterSequenceArea* thisClustering = new fastjet::ClusterSequenceArea(newparticles, jetDef, fjAreaDefinition);
+     std::vector<fastjet::PseudoJet> out_jets = sorted_by_pt(thisClustering->inclusive_jets(0.01));        
+         
+     // fill into curjet
+     curjet = out_jets[0];
+
+     tau1Gen  = nSub1KT(curjet);        
+     tau2Gen  = nSub2KT(curjet);        
 
      tree->Fill();
      nJetsAnalyzed++;
@@ -310,6 +355,9 @@ void GanjaTree::computeQGvars( float sum_weight, float sum_pt, float sum_deta, f
   a_axis2 = (a+b-delta > 0 ?  sqrt(0.5*(a+b-delta)) : 0);
   a_axis1 = (a+b+delta > 0 ?  sqrt(0.5*(a+b+delta)) : 0);
   a_ptD   = (sum_weight > 0 ? sqrt(sum_weight)/sum_pt : 0);
+
+  a_axis2 = -log(a_axis2);
+  a_axis1 = -log(a_axis1);
 
 }
 
@@ -380,6 +428,8 @@ GanjaTree::beginJob()
   tree->Branch("axis1Gen" , &axis1Gen, "axis1Gen/F");
   tree->Branch("axis2Gen" , &axis2Gen, "axis2Gen/F");
   tree->Branch("ptDGen"   , &ptDGen  , "ptDGen/F");
+  tree->Branch("tau1Gen"   , &tau1Gen  , "tau1Gen/F");
+  tree->Branch("tau2Gen"   , &tau2Gen  , "tau2Gen/F");
   tree->Branch("btag"  , &btag , "btag/F");
   tree->Branch("partonId"  , &partonId , "partonId/I");
   tree->Branch("jetIdLevel"  , &jetIdLevel , "jetIdLevel/I");

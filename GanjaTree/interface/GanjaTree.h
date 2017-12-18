@@ -56,7 +56,7 @@ class GanjaTree : public edm::EDAnalyzer {
       edm::Service<TFileService> fs;
       TTree* tree;
       float rho, pt, eta, phi, mass, ptGen, etaGen, phiGen, massGen, btag;
-      float axis1, axis2, ptD, axis1Gen, axis2Gen, ptDGen;
+      float axis1, axis2, ptD, axis1Gen, axis2Gen, ptDGen, tau1Gen, tau2Gen;
       int event, run, lumi, nVert, nPU, partonId, jetIdLevel;
 
       float pixelSize = 0.0046875; // so as to have 64x2 pixels
