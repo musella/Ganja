@@ -7,7 +7,7 @@
     <lib name="fastjetcontribfragile"/>
     <lib name="fastjet"/>
     <client>
-      <environment name="FASTJET_BASE" default="/afs/cern.ch/work/p/pandolf/CMSSW_5_3_32_Ganja/src/Ganja/GanjaTree/fastjet-install/"/>
+      <environment name="FASTJET_BASE" default="$CMSSW_BASE/src/Ganja/GanjaTree/fastjet-install/"/>
       <!-- <environment name="FASTJET_BASE" default="/cvmfs/cms.cern.ch/slc6_amd64_gcc472/external/fastjet/3.0.1-cms2"/> -->
       <environment name="LIBDIR" default="$FASTJET_BASE/lib"/>
       <environment name="INCLUDE" default="$FASTJET_BASE/include"/>
