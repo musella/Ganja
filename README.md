@@ -1,6 +1,6 @@
 # Welcome to GAN Jet Analysis (Ganja)
 
-After checking out the git repository, move to the `GanjaTree` directory. You're gonna have to install fastjet:
+After checking out the git repository, move to the `GanjaTree` directory. You're gonna have to install fastjet before compiling:
 
 ```
 curl -O http://fastjet.fr/repo/fastjet-3.3.0.tar.gz 
@@ -22,9 +22,8 @@ make fragile-shared-install
 mv libfastjetcontribfragile.so ../fastjet-install/lib/
 cd ..
 cp extras/fastjet.xml ../../../config/toolbox/slc6_amd64_gcc472/tools/selected/
+scram b -j 4
 ```
-
-, and compile the analyzer with `scram b -j 4`.
 
 Then move to the `test` directory and run the config with `cmsRun ganjatree_cfg.py`. By default it will loop over the first 100 entries of a QCD Pt50-80 MC file found in:
 
