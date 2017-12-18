@@ -3,6 +3,7 @@
 After checking out the git repository, move to the `GanjaTree` directory. You're gonna have to install fastjet:
 
 `curl -O http://fastjet.fr/repo/fastjet-3.3.0.tar.gz `
+
 `tar zxvf fastjet-3.3.0.tar.gz`
 `cd fastjet-3.3.0/`
 `./configure --prefix=$PWD/../fastjet-install`
