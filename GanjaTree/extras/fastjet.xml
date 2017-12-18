@@ -4,6 +4,7 @@
     <lib name="fastjettools"/>
     <lib name="siscone"/>
     <lib name="siscone_spherical"/>
+    <lib name="fastjetcontribfragile"/>
     <lib name="fastjet"/>
     <client>
       <environment name="FASTJET_BASE" default="/afs/cern.ch/work/p/pandolf/CMSSW_5_3_32_Ganja/src/Ganja/GanjaTree/fastjet-install/"/>
