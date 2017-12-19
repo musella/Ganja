@@ -45,14 +45,14 @@ def show_prediction(img,gen,reco,pred):
     plt.tight_layout()
         
 # -----------------------------------------------------------------------------
-def scatter_pred(gen,reco,pred,mask=None,title=None,figsize=(15,7.5)):
+def scatter_pred(gen,reco,pred,mask=None,title=None,figsize=(15,7.5),rng=[0,0.1]):
     
     if mask is not None:
         gen = gen[:,mask]
         reco = reco[:,mask]
         pred = pred[:,mask]
     
-    kwargs = dict(range=[ [0,0.1], [0,0.1]], bins=100, norm=LogNorm())
+    kwargs = dict(range=[rng,rng], bins=100, norm=LogNorm())
     plt.figure(figsize=figsize)
     plt.subplot(121)
     plt.hist2d(  gen.ravel(), reco.ravel(), cmap='Reds', **kwargs );
