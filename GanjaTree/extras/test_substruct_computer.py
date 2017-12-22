@@ -15,8 +15,6 @@ phis = ( np.arange( imsize, dtype=np.float32 ).reshape(1,imsize,-1) + imsize / 2
 
 import numpy as np
 
-from pyjet._libpyjet import  PseudoJet
-
 def img2p4(arr, etas, phis ):
     mom = arr * np.cosh( etas )
     px = arr * np.cos( phis )

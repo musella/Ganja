@@ -7,7 +7,67 @@ from keras.utils import to_categorical
 
 from matplotlib.colors import LogNorm
 
+from joblib import Parallel, delayed
+
+
 saveto = None
+
+
+# -----------------------------------------------------------------------------
+def img2p4(arr, etas, phis ):
+    mom = arr * np.cosh( etas )
+    px = arr * np.cos( phis )
+    py = arr * np.sin( phis )
+    pz = np.sqrt( mom*mom - px*px -py*py)
+    mask = mom != 0
+    ## print(mom.shape,mask.shape)
+    return mom[mask].ravel().astype(np.float32, order='F'), px[mask].ravel().astype(np.float32, order='F'), py[mask].ravel().astype(np.float32, order='F'), pz[mask].ravel().astype(np.float32, order='F')
+
+
+# -----------------------------------------------------------------------------
+def compute_substructure(imgs,pts,etas,phis,rad=0.3,n_jobs=5,steps=100):
+
+    ## step = imgs.shape[0] // n_jobs
+    step = imgs.shape[0] // steps
+    with Parallel(n_jobs=n_jobs,verbose=10) as parallel:
+        metrics = parallel( delayed(run_substructure)
+                            (imgs[bound:bound+step],pts[bound:bound+step],etas[bound:bound+step],
+                             phis[bound:bound+step],rad=rad) for bound in range(0,imgs.shape[0],step) )
+
+    return np.concatenate(metrics)
+
+# -----------------------------------------------------------------------------
+def run_substructure(imgs,pts,etas,phis,rad=0.3):
+    import ROOT as RT
+    RT.gSystem.Load("./ganja/SubstructureComputer_C.so")
+    cmpt = RT.SubstructureComputer()
+
+    npix = imgs.shape[1]/2
+    imeta, imphi = make_grid(npix,rad)
+
+    ## print(imeta)
+    ## print(imphi)
+    metrics = []
+    for im in range(imgs.shape[0]):
+        p4 = img2p4( imgs[im]*pts[im], imeta+etas[im], imphi+phis[im] )
+        cmpt( p4[0].shape[-1], *p4 )
+
+        ## tau31 = 0.
+        ## tau32 = 0.
+        ### if cmpt.tau1 != 0:
+        ###     tau31 = cmpt.tau3 / cmpt.tau1
+        ### if cmpt.tau2 != 0:
+        ###     tau32 = cmpt.tau3 / cmpt.tau2
+        metrics.append( [cmpt.ptD, cmpt.axis1, cmpt.axis2, cmpt.tau21,
+                         ##tau31, tau32,
+                         cmpt.tau1, cmpt.tau2, cmpt.tau3 ] )
+    return np.array(metrics)### , dtype=[('ptD',np.float32),
+                            ###         ('axis1',np.float32),
+                            ###         ('axis2',np.float32),
+                            ###         ('tau21',np.float32),
+                            ###         ('tau2',np.float32),
+                            ###         ('tau3',np.float32)])
+        
 
 # -----------------------------------------------------------------------------
 def show_img(img, title, xlabel='$i\eta$', ylabel='$i\phi$', **kwargs):
@@ -68,7 +128,21 @@ def scatter_pred(gen,reco,pred,mask=None,title=None,figsize=(15,7.5),rng=[0,0.1]
     if title is not None:
         plt.title(title)
     
-        
+
+# -----------------------------------------------------------------------------
+def distrib_metric(reco,pred,xlabel=None,title=None,yscale=None,figsize=(7.5,7.5),**kwargs):
+    plt.figure(figsize=figsize)
+    plt.hist(  reco.ravel(), label='reco', **kwargs );
+    plt.hist(  pred.ravel(), label='pred', alpha=0.5, **kwargs );
+    if title is not None:
+        plt.title(title)
+    if xlabel is not None:
+        plt.xlabel(xlabel)
+    plt.legend()
+    if yscale is not None:
+        plt.yscale(yscale)
+    
+    
 # -----------------------------------------------------------------------------
 def distrib_pred(gen,reco,pred,mask=None,title=None,figsize=(7.5,7.5)):
     
@@ -84,6 +158,8 @@ def distrib_pred(gen,reco,pred,mask=None,title=None,figsize=(7.5,7.5)):
     plt.figure(figsize=figsize)
     plt.hist(  reco.ravel(), label='reco', **kwargs );
     plt.hist(  pred.ravel(), label='pred', alpha=0.5, **kwargs );
+    if title is not None:
+        plt.title(title)
     plt.xlabel('$\sum p_T^i / p_T^{gen} (jet)$')
     plt.legend()
     plt.yscale('log')
@@ -91,10 +167,20 @@ def distrib_pred(gen,reco,pred,mask=None,title=None,figsize=(7.5,7.5)):
 # -----------------------------------------------------------------------------
 def aggregate(imgs,mask=None,weights=None,moments=False,categories=None):#,quantiles=[]):
     if mask is not None:
-        imgs = imgs[:,mask].sum(axis=(1,2))
-    else:
+        if len(imgs.shape)> 1:
+            imgs = imgs[:,mask].sum(axis=(1,2))
+        else:
+            imgs = imgs[mask]
+            weights = weights[mask]
+    elif len(imgs.shape)> 1:
         imgs = imgs.sum(axis=(1,2,3))
 
+    valid = np.isfinite(imgs)
+    imgs = imgs[valid]
+    if weights is not None:
+        weights = weights[valid]
+    if categories is not None:
+        categories = categories[valid]
     if moments:
         if categories is not None:
             imgs = imgs.reshape(-1,1) * categories
@@ -116,7 +202,7 @@ def get_moments(imgs,xvar,xbins,yvar=None,ybins=None,mask=None,weights=None):
     return bins,mean,std
 
 # -----------------------------------------------------------------------------
-def show_moments(reco,pred,xvar,xbins,xlabel=None,title=None,weights=None,mask=None):
+def show_moments(reco,pred,xvar,xbins,ylabel="$\sum p_T^i / p^{gen}_T (jet) $",xlabel=None,title=None,weights=None,mask=None):
     _,reco_mean,reco_std = get_moments(reco,xvar,xbins,weights=weights,mask=mask)
     _,pred_mean,pred_std = get_moments(pred,xvar,xbins,weights=weights,mask=mask)
     ## _,gen_mean,gen_std = get_moments(gen,xvar,xbins,weights=weights,mask=mask)
@@ -134,13 +220,20 @@ def show_moments(reco,pred,xvar,xbins,xlabel=None,title=None,weights=None,mask=N
         plt.title(title)
     if xlabel:
         plt.xlabel(xlabel)
-    plt.ylabel("$\sum p_T^i / p^{gen}_T (jet) $")
+    plt.ylabel(ylabel)
     
 
+
 # -----------------------------------------------------------------------------
-def make_masks(radii,cumulative=False,npix=16,rad=0.3):
+def make_grid(npix=16,rad=0.3):
+    eta, phi= np.ogrid[-npix:npix,-npix:npix]
+
+    return (eta+0.5)/npix*rad, (phi+0.5)/npix*rad
+    
+# -----------------------------------------------------------------------------
+def make_masks(radii,cumulative=False,npix=16,rad=0.3):    
     x, y= np.ogrid[-npix:npix,-npix:npix]
-    radius = np.sqrt( (x/npix*rad)**2 + (y/npix*rad)**2 )
+    radius = np.sqrt( ((x+0.5)/npix*rad)**2 + ((y+0.5)/npix*rad)**2 )
     
     radii = list(sorted(set(list(radii)+[0.])))
     
