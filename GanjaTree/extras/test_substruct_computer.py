@@ -29,7 +29,7 @@ for ijet in range(arr.shape[0]):
     p4 = img2p4( arr[ijet], etas[ijet], phis[0] )
     print(etas[ijet].mean())
 
-    c( p4[0].shape[-1], p4[0].astype(np.float32, order='F'), p4[1].astype(np.float32, order='F'), p4[2].astype(np.float32, order='F'), p4[3].astype(np.float32, order='F') )
+    c( p4[0].shape[-1], p4[0].astype(np.float32, order='F'), p4[1].astype(np.float32, order='F'), p4[2].astype(np.float32, order='F'), p4[3].astype(np.float32, order='F'), 0., 0. )
     
     print( c.ptD, c.axis1, c.axis2, c.tau21, c.tau1, c.tau2, c.tau3 )
     

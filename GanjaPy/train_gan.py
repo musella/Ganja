@@ -78,6 +78,11 @@ class Parameters(utils.Parameters):
     batch_size = utils.param(256)
     epochs = utils.param(200)
     lr = utils.param(0.0002)
+    lr_decay = utils.param(6e-8)
+    lr_disc = utils.param(-1.)
+    lr_decay_disc = utils.param(-1.)
+    lr_gen = utils.param(-1.)
+    lr_decay_gen = utils.param(-1.)
     # pixel-wise loss
     loss = utils.param('SoftMaskMeanSquaredErrorWithTotal') 
     loss_alpha = utils.param(1.) ## class weight for empty pixels class
@@ -104,6 +109,18 @@ class Parameters(utils.Parameters):
 class MyApp(utils.MyApp):
     classes = utils.List([Parameters])
 notebook_parameters = Parameters(MyApp(is_main=True)).get_params()
+
+if notebook_parameters["LR_DISC"] < 0.:
+    notebook_parameters["LR_DISC"] = notebook_parameters["LR"]
+
+if notebook_parameters["LR_DECAY_DISC"] < 0.:
+    notebook_parameters["LR_DECAY_DISC"] = notebook_parameters["LR_DECAY"]
+
+if notebook_parameters["LR_GEN"] < 0.:
+    notebook_parameters["LR_GEN"] = notebook_parameters["LR"]
+
+if notebook_parameters["LR_DECAY_GEN"] < 0.:
+    notebook_parameters["LR_DECAY_GEN"] = notebook_parameters["LR_DECAY"]
 
 # copy parameters to global scope
 globals().update(notebook_parameters)
@@ -203,8 +220,8 @@ model = unet.MyUnetGAN( g_opts=dict(nfilters=NFILTERS,
                                     do_total=DISC_DO_TOTAL,
                                     total_layers=DISC_TOTAL_LAYERS,
                         ),
-                        dm_opts=dict(loss=dloss,loss_weight=dloss_weight),
-                        am_opts=dict(loss=aloss,loss_weight=aloss_weight),
+                        dm_opts=dict(loss=dloss,loss_weight=dloss_weight,opt_kwargs=dict(lr=LR_DISC, decay=LR_DECAY_DISC)),
+                        am_opts=dict(loss=aloss,loss_weight=aloss_weight,opt_kwargs=dict(lr=LR_GEN, decay=LR_DECAY_GEN)),
                         x_shape=(IMG_SIZE,IMG_SIZE,1),
                         c_shape=c_shape,
                         z_shape=z_shape

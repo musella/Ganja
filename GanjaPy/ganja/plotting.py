@@ -15,12 +15,15 @@ saveto = None
 
 # -----------------------------------------------------------------------------
 def img2p4(arr, etas, phis ):
+    ## print(type(arr))
     mom = arr * np.cosh( etas )
     px = arr * np.cos( phis )
     py = arr * np.sin( phis )
+    ## print(arr.shape,mom.shape,etas.shape,phis.shape,px.shape,py.shape)
     pz = np.sqrt( mom*mom - px*px -py*py)
     mask = mom != 0
     ## print(mom.shape,mask.shape)
+    ## return mom.ravel().astype(np.float32, order='F'), px.ravel().astype(np.float32, order='F'), py.ravel().astype(np.float32, order='F'), pz.ravel().astype(np.float32, order='F')
     return mom[mask].ravel().astype(np.float32, order='F'), px[mask].ravel().astype(np.float32, order='F'), py[mask].ravel().astype(np.float32, order='F'), pz[mask].ravel().astype(np.float32, order='F')
 
 
@@ -42,7 +45,7 @@ def run_substructure(imgs,pts,etas,phis,rad=0.3):
     RT.gSystem.Load("./ganja/SubstructureComputer_C.so")
     cmpt = RT.SubstructureComputer()
 
-    npix = imgs.shape[1]/2
+    npix = imgs.shape[1]//2
     imeta, imphi = make_grid(npix,rad)
 
     ## print(imeta)
@@ -50,7 +53,7 @@ def run_substructure(imgs,pts,etas,phis,rad=0.3):
     metrics = []
     for im in range(imgs.shape[0]):
         p4 = img2p4( imgs[im]*pts[im], imeta+etas[im], imphi+phis[im] )
-        cmpt( p4[0].shape[-1], *p4 )
+        cmpt( p4[0].shape[-1], *p4, etas[im], phis[im] )
 
         ## tau31 = 0.
         ## tau32 = 0.
@@ -59,7 +62,7 @@ def run_substructure(imgs,pts,etas,phis,rad=0.3):
         ### if cmpt.tau2 != 0:
         ###     tau32 = cmpt.tau3 / cmpt.tau2
         metrics.append( [cmpt.ptD, cmpt.axis1, cmpt.axis2, cmpt.tau21,
-                         ##tau31, tau32,
+                         ## tau31, tau32,
                          cmpt.tau1, cmpt.tau2, cmpt.tau3 ] )
     return np.array(metrics)### , dtype=[('ptD',np.float32),
                             ###         ('axis1',np.float32),
@@ -228,6 +231,14 @@ def show_moments(reco,pred,xvar,xbins,ylabel="$\sum p_T^i / p^{gen}_T (jet) $",x
 def make_grid(npix=16,rad=0.3):
     eta, phi= np.ogrid[-npix:npix,-npix:npix]
 
+    onephi = np.ones_like(phi)
+    oneeta  = np.ones_like(eta)
+    ## print(eta.shape,phi.shape)
+    eta = (eta*onephi).reshape(2*npix,2*npix,1)
+    phi = (phi*oneeta).reshape(2*npix,2*npix,1)
+    ## print(eta.shape,phi.shape)
+    
+    ## print(eta, phi)
     return (eta+0.5)/npix*rad, (phi+0.5)/npix*rad
     
 # -----------------------------------------------------------------------------
